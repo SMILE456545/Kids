@@ -1,0 +1,10 @@
+﻿[
+ {"name": "sheep", "box": [20, 60, 880, 242], "count": 4, "names": ["sheep_front", "sheep_side", "sheep_back", "sheep_side_l"]},
+ {"name": "sheep_walk_front", "box": [880, 70, 1536, 250], "count": 4},
+ {"name": "sheep_walk_side", "box": [0, 320, 880, 485], "count": 5},
+ {"name": "sheep_walk_back", "box": [950, 330, 1536, 492], "count": 4},
+ {"name": "goat", "box": [20, 545, 880, 752], "count": 4, "names": ["goat_front", "goat_side", "goat_back", "goat_side_l"]},
+ {"name": "goat_walk_front", "box": [880, 565, 1536, 760], "count": 4},
+ {"name": "goat_walk_side", "box": [0, 835, 880, 1005], "count": 5},
+ {"name": "goat_walk_back", "box": [950, 840, 1536, 1010], "count": 4}
+]

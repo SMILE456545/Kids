@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#a8cb7c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Весёлая ферма</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pangolin&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #3b2e29; --paper: #fff8e7; --green: #8db32a; --green-d: #6f8f1c;
+    --red: #f0484e; --orange: #f2a127; --orange-d: #d9800f; --card: #b7cdc4;
+    --font: 'Pangolin', 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #a8cb7c; font-family: var(--font); color: var(--ink);
+    user-select: none; -webkit-user-select: none; touch-action: none; overscroll-behavior: none; }
+  #game { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; display: block; transition: filter .5s; }
+  body.menu #game { filter: blur(3px) saturate(1.05); }
+  button { font-family: var(--font); cursor: pointer; border: none; color: inherit; }
+  [hidden] { display: none !important; }
+
+  /* круглые кнопки как в детских играх */
+  .btn-round { width: 64px; height: 64px; border-radius: 50%; background: var(--green); border: 4px solid #fff;
+    box-shadow: 0 0 0 2.5px var(--ink), 0 5px 0 2.5px rgba(0,0,0,.25); display: grid; place-items: center; transition: transform .12s; }
+  .btn-red { width: 74px; height: 56px; border-radius: 26px; background: var(--red); border: none; box-shadow: 0 4px 0 rgba(0,0,0,.2);
+    display: grid; place-items: center; transition: transform .12s; }
+  .btn-round:active, .btn-red:active, .play:active, .card:active, .menu-btn:active { transform: scale(.92); }
+  .btn-round svg, .btn-red svg { width: 34px; height: 34px; fill: #fff; }
+
+  #hud .tl { position: fixed; left: calc(14px + env(safe-area-inset-left)); top: calc(14px + env(safe-area-inset-top)); display: flex; gap: 12px; align-items: flex-start; }
+  #hud .tr { position: fixed; right: calc(14px + env(safe-area-inset-right)); top: calc(14px + env(safe-area-inset-top)); }
+
+  #quest { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 6px 10px 8px; box-shadow: 0 4px 0 rgba(0,0,0,.15); max-width: min(400px, 62vw); }
+  #quest .qh { font-size: 17px; display: flex; justify-content: space-between; gap: 10px; white-space: nowrap; }
+  #quest .qh b { color: var(--orange-d); }
+  #qlist { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 0; padding: 0; list-style: none; }
+  #qlist li { width: 36px; height: 36px; border-radius: 50%; background: #e9e3d0; border: 2px solid #cfc6ae; display: grid; place-items: center; position: relative; }
+  #qlist li img { width: 30px; height: 30px; object-fit: contain; opacity: .45; filter: grayscale(.8); }
+  #qlist li.done { background: #dff0c2; border-color: var(--green); }
+  #qlist li.done img { opacity: 1; filter: none; }
+  #qlist li.done::after { content: '✓'; position: absolute; right: -4px; bottom: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--green); color: #fff; font-size: 12px; line-height: 16px; text-align: center; border: 1.5px solid #fff; }
+
+  /* диалог с героем */
+  #dialog { position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    width: min(780px, calc(100vw - 24px)); display: flex; align-items: flex-end; gap: 10px; cursor: pointer; animation: pop .25s ease-out; }
+  #portrait { width: 112px; height: 112px; flex: none; border-radius: 50%; border: 5px solid #fff; box-shadow: 0 0 0 2.5px var(--ink), 0 4px 0 2.5px rgba(0,0,0,.2); background: #cfe6b4; }
+  #dialog .bubble { flex: 1; background: var(--paper); border: 3px solid var(--ink); border-radius: 22px; padding: 10px 16px 12px; min-height: 92px;
+    position: relative; box-shadow: 0 5px 0 rgba(0,0,0,.18); margin-bottom: 6px; }
+  #dialog .name { position: absolute; top: -16px; left: 16px; background: var(--orange); color: #fff; padding: 1px 12px; border-radius: 12px; border: 2.5px solid var(--ink); font-size: 16px; }
+  #dlgText { font-size: clamp(17px, 2.3vw, 22px); line-height: 1.3; margin-top: 6px; }
+  #dialog .next { position: absolute; right: 12px; bottom: 6px; font-size: 18px; color: var(--orange-d); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+  @keyframes pop { from { transform: translateX(-50%) translateY(20px); opacity: 0; } }
+
+  /* экраны меню */
+  .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+  #title .logo { position: relative; margin-top: -8vh; transform: rotate(-3deg); text-align: center; }
+  #title .logo .badge { display: inline-block; background: var(--orange); border: 4px solid var(--orange-d); border-radius: 40px; padding: 4px 34px 12px;
+    box-shadow: 0 8px 0 rgba(0,0,0,.18); }
+  #title .logo h1 { margin: 0; font-weight: 400; font-size: clamp(46px, 9vw, 104px); line-height: 1.05; color: #fff;
+    -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 4px 0 rgba(0,0,0,.2); letter-spacing: 1px; }
+  #title .logo .sub { display: block; font-size: clamp(16px, 2.4vw, 24px); color: #fff; margin-top: -2px; }
+  .play { margin-top: 5vh; width: clamp(110px, 18vmin, 150px); aspect-ratio: 1; border-radius: 50%; background: var(--green); border: 8px solid #fff;
+    box-shadow: 0 0 0 3px var(--ink), 0 8px 0 3px rgba(0,0,0,.25); display: grid; place-items: center; animation: pulse 1.6s infinite; }
+  .play svg { width: 48%; fill: #fff; margin-left: 10%; }
+  @keyframes pulse { 50% { transform: scale(1.06); } }
+  .kid-cv { position: fixed; bottom: 0; height: min(46vh, 380px); aspect-ratio: 3/4; pointer-events: none; }
+  #kidL { left: 2vw; } #kidR { right: 2vw; }
+
+  #select { background: radial-gradient(ellipse at center, #fbf0cc 0%, #efd79d 100%); }
+  .ribbon { position: relative; background: var(--orange); color: #3b2e29; font-size: clamp(28px, 5vw, 46px); padding: 4px 40px 8px; border-radius: 6px;
+    box-shadow: 0 5px 0 var(--orange-d); margin-bottom: 4vh; }
+  .ribbon::before, .ribbon::after { content: ''; position: absolute; top: 14px; width: 40px; height: 100%; background: var(--orange-d); z-index: -1; }
+  .ribbon::before { left: -26px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 35% 50%); }
+  .ribbon::after { right: -26px; clip-path: polygon(0 0, 100% 0, 65% 50%, 100% 100%, 0 100%); }
+  .cards { display: flex; gap: clamp(16px, 5vw, 60px); flex-wrap: wrap; justify-content: center; }
+  .card { width: clamp(150px, 30vw, 260px); background: var(--card); border: 8px solid #fff; border-radius: 28px; box-shadow: 0 0 0 3px var(--ink), 0 8px 0 3px rgba(0,0,0,.2);
+    padding: 10px 10px 16px; display: flex; flex-direction: column; align-items: center; transition: transform .15s; }
+  .card:hover { transform: translateY(-6px) rotate(-1deg); }
+  .card canvas { width: 100%; aspect-ratio: 3/4; }
+  .card .nm { background: #f6ecd8; border: 2.5px solid var(--ink); border-radius: 10px; padding: 2px 18px; font-size: clamp(20px, 3vw, 28px); margin-top: -6px; }
+  .back { position: fixed; left: calc(14px + env(safe-area-inset-left)); top: calc(14px + env(safe-area-inset-top)); }
+
+  .modal { position: fixed; inset: 0; background: rgba(40,30,25,.45); display: grid; place-items: center; padding: 20px; }
+  .modal .box { background: var(--paper); border: 4px solid var(--ink); border-radius: 26px; padding: 18px 22px 22px; width: min(380px, 100%); text-align: center; box-shadow: 0 8px 0 rgba(0,0,0,.2); }
+  .modal h2 { margin: 0 0 12px; font-weight: 400; font-size: 32px; }
+  .menu-btn { display: block; width: 100%; margin: 10px 0; padding: 12px; font-size: 21px; border-radius: 16px; background: #fff; border: 3px solid var(--ink); box-shadow: 0 4px 0 rgba(0,0,0,.18); }
+  .menu-btn.primary { background: var(--green); color: #fff; }
+
+  #toast { position: fixed; top: 22%; left: 50%; transform: translateX(-50%); background: var(--paper); border: 3px solid var(--ink); border-radius: 20px;
+    padding: 10px 22px; font-size: clamp(20px, 3vw, 28px); box-shadow: 0 6px 0 rgba(0,0,0,.18); pointer-events: none; transition: opacity .4s, transform .4s; text-align: center; }
+  #toast.hide { opacity: 0; transform: translateX(-50%) translateY(-14px); }
+
+  #loading { position: fixed; inset: 0; display: grid; place-items: center; background: #a8cb7c; font-size: 30px; color: #fff; -webkit-text-stroke: 1.5px var(--ink); paint-order: stroke fill; }
+
+  @media (max-height: 500px) {
+    #portrait { width: 78px; height: 78px; border-width: 4px; }
+    #dialog .bubble { min-height: 70px; padding: 8px 12px 10px; }
+    .btn-round { width: 52px; height: 52px; } .btn-red { width: 60px; height: 46px; }
+    .btn-round svg, .btn-red svg { width: 28px; height: 28px; }
+    #qlist li { width: 30px; height: 30px; } #qlist li img { width: 25px; height: 25px; }
+    .kid-cv { height: 60vh; }
+    #title .logo { margin-top: -4vh; }
+  }
+  @media (max-width: 560px) {
+    #quest .qh span.t { display: none; }
+    #qlist { max-width: 170px; }
+  }
+</style>
+</head>
+<body class="menu">
+<canvas id="game"></canvas>
+
+<div id="hud" hidden>
+  <div class="tl">
+    <button class="btn-round" id="btnHome" aria-label="На главный экран">
+      <svg viewBox="0 0 24 24"><path d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3z"/></svg>
+    </button>
+    <div id="quest">
+      <div class="qh"><span class="t">Обойди ферму</span><b id="qcount">0/8</b></div>
+      <ul id="qlist"></ul>
+    </div>
+  </div>
+  <div class="tr">
+    <button class="btn-red" id="btnSettings" aria-label="Настройки">
+      <svg viewBox="0 0 24 24"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.7 7.7 0 0 0-1.7-1L15 3h-4l-.4 2.7a7.7 7.7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.7 7.7 0 0 0 1.7 1L11 21h4l.4-2.7a7.7 7.7 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5A3.5 3.5 0 1 1 13 8.5a3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
+    </button>
+  </div>
+</div>
+
+<div id="dialog" hidden>
+  <canvas id="portrait" width="224" height="224"></canvas>
+  <div class="bubble"><div class="name" id="dlgName">Маша</div><div id="dlgText"></div><div class="next">▶</div></div>
+</div>
+
+<div id="toast" class="hide"></div>
+
+<div id="title" class="screen" hidden>
+  <div class="logo"><div class="badge"><h1>Весёлая ферма</h1><span class="sub">ухаживай за животными!</span></div></div>
+  <button class="play" id="btnPlay" aria-label="Играть"><svg viewBox="0 0 24 24"><path d="M5 3.5v17l15-8.5z"/></svg></button>
+  <canvas class="kid-cv" id="kidL" width="300" height="400"></canvas>
+  <canvas class="kid-cv" id="kidR" width="300" height="400"></canvas>
+</div>
+
+<div id="select" class="screen" hidden>
+  <button class="btn-round back" id="btnSelBack" aria-label="Назад">
+    <svg viewBox="0 0 24 24"><path d="M15.5 3 6 12l9.5 9 2-2-7.4-7 7.4-7z"/></svg>
+  </button>
+  <div class="ribbon">Выбери героя</div>
+  <div class="cards">
+    <button class="card" data-g="girl"><canvas width="300" height="400"></canvas><span class="nm">Маша</span></button>
+    <button class="card" data-g="boy"><canvas width="300" height="400"></canvas><span class="nm">Миша</span></button>
+  </div>
+</div>
+
+<div id="settings" class="modal" hidden>
+  <div class="box">
+    <h2>Настройки</h2>
+    <button class="menu-btn primary" id="setResume">Продолжить</button>
+    <button class="menu-btn" id="setHero">Сменить героя</button>
+    <button class="menu-btn" id="setFull">Во весь экран</button>
+    <button class="menu-btn" id="setReset">Начать заново</button>
+  </div>
+</div>
+
+<div id="loading">Загружаем ферму…</div>
+
+<script src="js/sketch.js"></script>
+<script src="js/art.js"></script>
+<script src="js/assets.js"></script>
+<script src="js/rig.js"></script>
+<script src="assets/anim/anchors.js"></script>
+<script src="js/world.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
