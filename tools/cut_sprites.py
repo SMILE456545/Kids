@@ -124,7 +124,7 @@ def process(path, gap):
     boxes = order(attach_small(components(fg)))
     stem = path.stem.replace("'", '').replace(' ', '_')
     res = []
-    for i, (x0, y0, x1, y1, _a) in enumerate(boxes):
+    for i, (x0, y0, x1, y1, *_rest) in enumerate(boxes):
         pad = 4
         crop = rgba.crop((max(0, x0 - pad), max(0, y0 - pad), min(img.width, x1 + pad), min(img.height, y1 + pad)))
         bb = crop.getchannel('A').point(lambda v: 255 if v > 8 else 0).getbbox()

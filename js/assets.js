@@ -9,7 +9,7 @@ function loadImages(keys) {
     const im = new Image();
     im.onload = () => { IMG[k] = im; res(true); };
     im.onerror = () => res(false);
-    im.src = 'assets/' + k + '.png';
+    im.src = 'assets/' + k + (/\.(jpg|jpeg|webp|png)$/.test(k) ? '' : '.png');
   })));
 }
 

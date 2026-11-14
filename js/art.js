@@ -9,7 +9,7 @@ const PAL = {
 };
 
 const KIDS = {
-  girl: { name: 'Маша', shirt: '#f4a5bb', over: '#5b8cc9', overD: '#476fa6', hair: '#3f2b22' },
+  girl: { name: 'Айлин', shirt: '#f4a5bb', over: '#5b8cc9', overD: '#476fa6', hair: '#3f2b22' },
   boy: { name: 'Миша', shirt: '#f3cf5e', over: '#4f7fbf', overD: '#3f669e', hair: '#8b5a33', cap: '#d9574f', capD: '#b5443e' },
 };
 
